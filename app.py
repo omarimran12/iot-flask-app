@@ -1,33 +1,30 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 import os
 from pymongo import MongoClient
 
 app = Flask(__name__)
 
-# جلب اسم المستخدم وكلمة السر من متغيرات البيئة
+# الاتصال بقاعدة البيانات MongoDB
 MONGO_USER = os.environ["MONGO_USER"]
 MONGO_PASS = os.environ["MONGO_PASS"]
-
 MONGO_URI = f"mongodb+srv://{MONGO_USER}:{MONGO_PASS}@cluster0.xcm0cwx.mongodb.net/iot_db?retryWrites=true&w=majority&appName=Cluster0"
 client = MongoClient(MONGO_URI)
 db = client["iot_db"]
 collection = db.devices
 
-# استقبال البيانات
-@app.route("/submit", methods=["POST"])
-def submit():
+# استقبال البيانات من التطبيق
+@app.route("/api/add_device", methods=["POST"])
+def add_device():
     data = request.get_json()
     if not data:
-        return "No data received", 400
-
+        return jsonify({"error": "No data received"}), 400
     collection.insert_one(data)
-    return "تم الحفظ", 200
+    return jsonify({"message": "تم حفظ بيانات الجهاز بنجاح"}), 200
 
-# عرض البيانات
+# عرض البيانات في الصفحة الرئيسية
 @app.route("/", methods=["GET"])
 def index():
     all_data = list(collection.find({}, {"_id": 0}))
-
     if not all_data:
         return "<h2>لا توجد بيانات بعد.</h2>"
 
@@ -37,7 +34,6 @@ def index():
         <th>النظام والتاريخ</th>
         <th>التطبيقات المثبتة</th>
     """
-
     rows = ""
     for d in all_data:
         model_info = "<br>".join([
@@ -62,7 +58,6 @@ def index():
             apps_info = "<ul style='text-align:right; padding-right:20px;'>" + "".join(f"<li>{app}</li>" for app in apps) + "</ul>"
         else:
             apps_info = str(apps)
-
         rows += f"""
         <tr>
             <td>{model_info}</td>
