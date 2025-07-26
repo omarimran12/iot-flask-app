@@ -4,11 +4,8 @@ from pymongo import MongoClient
 
 app = Flask(__name__)
 
-# إعداد الاتصال بقاعدة بيانات MongoDB عبر متغير بيئة
-MONGO_URI = os.environ.get(
-    "MONGO_URI",
-    "mongodb+srv://flask_user:Ir41jpShsCFxLBCn@cluster0.xcm0cwx.mongodb.net/iot_db?retryWrites=true&w=majority&appName=Cluster0"
-)
+# الاتصال بقاعدة بيانات MongoDB عبر متغير البيئة فقط
+MONGO_URI = os.environ["MONGO_URI"]
 client = MongoClient(MONGO_URI)
 db = client["iot_db"]
 collection = db.devices
